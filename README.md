@@ -16,4 +16,5 @@ python -m venv env --prompt gis_python_tools
 python -m pip install -U pip
 # install package in environment
 pip install -r requirements.txt
+# create a config.ini file in config folder
 ```
