@@ -18,6 +18,7 @@ import rasterio
 from rasterio.merge import merge
 import glob
 import os
+import fiona
 
 def merge_raster_in_folder(
         input_raster_folder_path: str,
@@ -64,3 +65,40 @@ def merge_raster_in_folder(
     # Write the mosaic raster to disk
     with rasterio.open(output_merge_raster_folder_path + 'merge_raster.tif', "w", **out_meta) as dest:
         dest.write(mergeRaster)
+
+def extract_raster_extent(
+        input_dir_path: str,
+        extension: str,
+        tileset_path: str,
+        crs: str = '2154',
+        resolution: int = 1):
+    
+    schema = { 
+    'geometry': 'Polygon', 
+    'properties': {'GID': 'int',
+                    'ROW': 'int',
+                    'COL': 'int',
+                    'X0': 'float',
+                    'Y0': 'float'} }
+    
+    options = dict(
+        driver='GPKG',
+        schema=schema,
+        crs=fiona.crs.from_epsg(crs))
+
+    # Make a search criteria to select the tiff raster files
+    search_criteria = '*'+extension
+
+    q = os.path.join(input_dir_path, search_criteria)
+
+    # list all raster file
+    rasterInFolder = glob.glob(q)
+
+    # create an empty list to gather the list of the raster name
+    rasterListToMerge = []
+
+    # read all the raster with rasterio and add it to the rasterListToMerge list
+    for raster in rasterInFolder:
+        with rasterio.open(raster) as src:
+            minx, miny, maxx, maxy = src.bounds
+    
