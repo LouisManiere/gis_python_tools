@@ -116,4 +116,20 @@ def extract_raster_extent(
             dst.write(feature)
             gid += 1
             
+def extract_raster_tiles_from_tileset(
+        tileset_path,
+        raster_dir,
+        dest_dir):
     
+    with fiona.open(tileset_path) as src:
+        for feature in src : 
+            filename = feature['properties']['NAME']
+            raster_file = os.path.join(raster_dir, filename)
+            dest_file = os.path.join(dest_dir, filename)
+            # Ouvre le fichier source en mode lecture binaire
+            with open(raster_file, "rb") as src_file:
+                # Ouvre le fichier de destination en mode écriture binaire
+                with open(dest_file, "wb") as dest_file:
+                    # Lit le contenu du fichier source et écrit dans le fichier de destination
+                    dest_file.write(src_file.read())
+
