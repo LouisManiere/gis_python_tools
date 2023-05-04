@@ -70,14 +70,12 @@ def extract_raster_extent(
         input_dir_path: str,
         extension: str,
         tileset_path: str,
-        crs: str = '2154',
-        resolution: int = 1):
+        crs: str = '2154'):
     
     schema = { 
     'geometry': 'Polygon', 
     'properties': {'GID': 'int',
-                    'ROW': 'int',
-                    'COL': 'int',
+                    'NAME': 'str',
                     'X0': 'float',
                     'Y0': 'float'} }
     
@@ -94,11 +92,28 @@ def extract_raster_extent(
     # list all raster file
     rasterInFolder = glob.glob(q)
 
-    # create an empty list to gather the list of the raster name
-    rasterListToMerge = []
-
-    # read all the raster with rasterio and add it to the rasterListToMerge list
-    for raster in rasterInFolder:
-        with rasterio.open(raster) as src:
-            minx, miny, maxx, maxy = src.bounds
+    gid = 1
+    with fiona.open(tileset_path, 'w', **options) as dst:
+        # read all the raster with rasterio and add it to the rasterListToMerge list
+        for raster in rasterInFolder:
+            with rasterio.open(raster) as src:
+                minx, miny, maxx, maxy = src.bounds
+                coordinates = [(minx,miny), (minx,maxy), (maxx,maxy), (maxx,miny)]
+                # Define the feature properties and geometry.
+                feature = {
+                    'geometry': {
+                        'type':'Polygon',
+                        'coordinates': [coordinates] 
+                    },
+                    'properties': {
+                        'GID': gid,
+                        'NAME': os.path.basename(raster),
+                        'Y0': minx,
+                        'X0': miny
+                    }
+                }
+            # Write only features that intersect with the study area.
+            dst.write(feature)
+            gid += 1
+            
     
