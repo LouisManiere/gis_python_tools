@@ -10,6 +10,6 @@ params = parameters_config()
 extract_raster_extent(
     input_dir_path = paths['inputs_dir'],
     extension = params['raster_extension'],
-    tileset_path = os.path.join(paths['outputs_dir'], paths['tileset']),
+    tileset_path = os.path.join(paths['tileset_dir'], paths['tileset']),
     crs = params['crs']
 )

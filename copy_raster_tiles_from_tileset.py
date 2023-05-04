@@ -8,7 +8,7 @@ params = parameters_config()
 
 
 extract_raster_tiles_from_tileset(
-    tileset_path = os.path.join(paths['inputs_dir'], paths['tileset']),
+    tileset_path = os.path.join(paths['tileset_dir'], paths['tileset']),
     raster_dir = paths['inputs_dir'],
     dest_dir = paths['outputs_dir']
 )
