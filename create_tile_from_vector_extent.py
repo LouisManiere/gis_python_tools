@@ -1,5 +1,5 @@
 
-from vector_tools.create_tile_from_extent import CreateTilesetFromExtent
+from vector_tools.CreateTilesetFromExtent import CreateTilesetFromExtent
 from config.config import paths_config, parameters_config
 
 # parameters
