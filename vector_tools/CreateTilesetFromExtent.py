@@ -20,7 +20,7 @@ import fiona.crs
 import geopandas
 from shapely.geometry import Polygon
 
-def CreateTilesetFromExtent(tile_size: float = 1000.0,
+def CreateTilesetFromExtent(tile_size: str = '1000.0',
                   study_area_path: str = './inputs/zone_etude.gpkg',
                   tileset_path: str = './outputs/tileset.gpkg',
                   crs = '2154'):
@@ -38,6 +38,9 @@ def CreateTilesetFromExtent(tile_size: float = 1000.0,
         The CRS code or name for the tileset.
     :return: None
     """
+    # convert to float
+    tile_size = float(tile_size)
+
 
     # Define the schema for the output GeoPackage.
     schema = {
