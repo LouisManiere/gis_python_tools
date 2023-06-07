@@ -126,6 +126,8 @@ def ExtractRasterTilesFromTileset(
             filename = feature['properties']['NAME']
             raster_file = os.path.join(raster_dir, filename)
             dest_file = os.path.join(dest_dir, filename)
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
             # Ouvre le fichier source en mode lecture binaire
             with open(raster_file, "rb") as src_file:
                 # Ouvre le fichier de destination en mode écriture binaire
