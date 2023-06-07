@@ -2,6 +2,7 @@
 
 
 ## Installation
+In command line :
 
 ```
 # go to the working folder you want to download the mapdo application
@@ -19,4 +20,11 @@ python3 -m pip install -U pip
 # install package in environment
 pip install -r requirements.txt
 # create a config.ini file in config folder
+```
+
+## Run with jupyter notebook
+In command line : 
+```
+# run jupyterlab
+python -m jupyterlab
 ```
