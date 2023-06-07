@@ -8,8 +8,8 @@ params = parameters_config()
 
 CreateTileset(
     tile_size = 10000,
-    study_area_path = './inputs/extent_test_fct.gpkg',
-    tileset_path = './outputs/tileset.gpkg',
+    study_area_path = paths['vector_in_1'],
+    tileset_path = paths['vector_in_2'],
     crs = '2154'
 )
 
