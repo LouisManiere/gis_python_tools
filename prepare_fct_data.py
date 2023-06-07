@@ -25,7 +25,16 @@ CreateTilesetFromRasters(
     crs = params['crs']
 )
 
-# create new tileset in the mask extent
+# get intersection between mask and tileset
+
+mask = gpd.read_file(paths['mask'])
+tileset_landuse = gpd.read_file(paths['tileset_landuse'])
+tileset_dem = gpd.read_file(paths['tileset_dem'])
+tileset_mask_landuse = gpd.overlay(tileset_landuse, mask, how='intersection')
+tileset_mask_dem = gpd.overlay(tileset_dem, mask, how='intersection')
+
+tileset_mask_landuse.to_file(paths['tileset_mask_landuse'], driver='GPKG')
+tileset_mask_dem.to_file(paths['tileset_mask_dem'], driver='GPKG')
 
 CreateTilesetFromExtent(
     tile_size = params['tile_size'],
