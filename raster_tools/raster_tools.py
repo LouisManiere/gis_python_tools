@@ -66,7 +66,7 @@ def merge_raster_in_folder(
     with rasterio.open(output_merge_raster_folder_path + 'merge_raster.tif', "w", **out_meta) as dest:
         dest.write(mergeRaster)
 
-def extract_raster_extent(
+def CreateTilesetFromRasters(
         input_dir_path: str,
         extension: str,
         tileset_path: str,
@@ -116,7 +116,7 @@ def extract_raster_extent(
             dst.write(feature)
             gid += 1
             
-def extract_raster_tiles_from_tileset(
+def ExtractRasterTilesFromTileset(
         tileset_path,
         raster_dir,
         dest_dir):

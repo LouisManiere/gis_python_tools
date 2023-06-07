@@ -7,7 +7,7 @@ paths = paths_config()
 params = parameters_config()
 
 
-extract_raster_extent(
+CreateTilesetFromRasters(
     input_dir_path = paths['inputs_dir'],
     extension = params['raster_extension'],
     tileset_path = paths['vector_in_1'],
