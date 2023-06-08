@@ -2,3 +2,5 @@ rasterio
 pandas
 geopandas
 jupyterlab
+ipython
+rtree

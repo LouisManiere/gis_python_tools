@@ -25,6 +25,9 @@ pip install -r requirements.txt
 ## Run with jupyter notebook
 In command line : 
 ```
+# Windows 10
 # run jupyterlab
 python -m jupyterlab
+# run ipython
+python -m IPython
 ```
