@@ -17,6 +17,8 @@ import fiona
 import fiona.crs
 from shapely.geometry import shape
 from rtree import index
+from shapely.geometry import LineString, MultiLineString, mapping, Point
+import numpy as np
 
 def FeatureInPolygonWithDistance(linestring_path, polygon_path, output_path, distance_threshold):
 
@@ -64,3 +66,110 @@ def FeatureInPolygonWithDistance(linestring_path, polygon_path, output_path, dis
     with fiona.open(output_path, 'w', **options) as output_layer:
         for feature in selected_features:
             output_layer.write(feature)
+
+
+def convert_multi_line_to_line(input_file, output_file):
+    # Open the input file with Fiona
+    with fiona.open(input_file, 'r') as src:
+        # Create a new output file with the desired schema
+        schema=src.schema.copy()
+        options = dict(
+                driver=src.driver,
+                schema=schema,
+                crs=src.crs)
+        with fiona.open(output_file, 'w', **options) as dst:
+            # Iterate over the features in the input file
+            for feature in src:
+                # Get the geometry of the feature
+                geometry = shape(feature['geometry'])
+                
+                # If it's a MultiLineString, convert it to LineString(s)
+                if geometry.geom_type == 'MultiLineString':
+                    for line in geometry:
+                        # Create a new feature with the LineString geometry
+                        new_feature = feature.copy()
+                        new_feature['geometry'] = mapping(line)
+                        
+                        # Write the new feature to the output file
+                        dst.write(new_feature)
+                
+                # If it's already a LineString, write it directly to the output file
+                elif geometry.geom_type == 'LineString':
+                    dst.write(feature)
+
+
+def identify_network_nodes(input_file, output_file, nodes_file):
+    with fiona.open(input_file, 'r') as source:
+        driver = source.driver
+        source_crs = source.crs
+        schema = source.schema.copy()
+
+        nodes_schema = {
+            'geometry': 'Point',
+            'properties': {'GID': 'int:10'}
+        }
+
+        output_schema = schema.copy()
+        output_schema['properties']['NODEA'] = 'int:10'
+        output_schema['properties']['NODEB'] = 'int:10'
+
+        with fiona.open(output_file, 'w', driver, output_schema, crs=source_crs) as output, \
+             fiona.open(nodes_file, 'w', driver, nodes_schema, crs=source_crs) as nodes:
+            coordinates = []
+
+            for feature in source:
+                line = LineString(feature['geometry']['coordinates'])
+                a = line.coords[0]
+                b = line.coords[-1]
+                coordinates.append(Point(a))
+                coordinates.append(Point(b))
+
+            # Quantization
+            minx = min(point.x for point in coordinates)
+            miny = min(point.y for point in coordinates)
+            maxx = max(point.x for point in coordinates)
+            maxy = max(point.y for point in coordinates)
+
+            kx = 1 if minx == maxx else maxx - minx
+            ky = 1 if miny == maxy else maxy - miny
+            sx = kx / 1e8
+            sy = ky / 1e8
+
+            coordinates = [Point((point.x - minx) / sx, (point.y - miny) / sy) for point in coordinates]
+
+            # Build Endpoints Index
+            point_index = {}
+            gid = 0
+
+            for coordinate in coordinates:
+                if coordinate not in point_index:
+                    point_index[coordinate] = gid
+                    point = Point(coordinate.x * sx + minx, coordinate.y * sy + miny)
+                    nodes.write({
+                        'geometry': {'type': 'Point', 'coordinates': (point.x, point.y)},
+                        'properties': {'GID': gid}
+                    })
+                    gid += 1
+
+            # Output Lines with Node Attributes
+            for feature in source:
+                geometry = LineString(feature['geometry']['coordinates'])
+
+                if geometry.is_simple:
+                    a = geometry.coords[0]
+                    b = geometry.coords[-1]
+                    node_a = point_index[Point((a[0] - minx) / sx, (a[1] - miny) / sy)]
+                    node_b = point_index[Point((b[0] - minx) / sx, (b[1] - miny) / sy)]
+                    feature['properties']['NODEA'] = node_a
+                    feature['properties']['NODEB'] = node_b
+                    output.write(feature)
+                else:
+                    for part in geometry:
+                        a = part.coords[0]
+                        b = part.coords[-1]
+                        node_a = point_index[Point((a[0] - minx) / sx, (a[1] - miny) / sy)]
+                        node_b = point_index[Point((b[0] - minx) / sx, (b[1] - miny) / sy)]
+                        output.write({
+                            'geometry': {'type': 'LineString', 'coordinates': list(part.coords)},
+                            'properties': {'NODEA': node_a, 'NODEB': node_b}
+                        })
