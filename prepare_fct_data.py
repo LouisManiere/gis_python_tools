@@ -60,8 +60,8 @@ vrt_dem = subprocess.run(bash_dem, shell=True, capture_output=True, text=True)
 
 # Clip reference hydrologic network
 
-# hydro_network = gpd.read_file(paths['hydro_network'])
+hydro_network = gpd.read_file(paths['hydro_network'])
 
-# hydro_network_mask = hydro_network.clip(mask = paths['mask'], keep_geom_type=True)
+hydro_network_mask = hydro_network.clip(mask = paths['mask'], keep_geom_type=True)
 
-# hydro_network_mask.to_file(paths['hydro_network_mask'], driver="GPKG")
+hydro_network_mask.to_file(paths['hydro_network_mask'], driver="GPKG")
