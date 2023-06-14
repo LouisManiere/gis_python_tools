@@ -1,6 +1,7 @@
 import os
 from raster_tools.raster_tools import CreateTilesetFromRasters, ExtractRasterTilesFromTileset
 from vector_tools.CreateTilesetFromExtent import CreateTilesetFromExtent
+from vector_tools.vector_tools import ExtractBylocation
 from config.config import paths_config, parameters_config
 import subprocess
 import geopandas as gpd
@@ -27,14 +28,8 @@ CreateTilesetFromRasters(
 
 # get intersection between mask and tileset
 
-mask = gpd.read_file(paths['mask'])
-tileset_landuse = gpd.read_file(paths['tileset_landuse'])
-tileset_dem = gpd.read_file(paths['tileset_dem'])
-tileset_mask_landuse = tileset_landuse[tileset_landuse.intersects(mask.unary_union)]
-tileset_mask_dem = tileset_dem[tileset_dem.intersects(mask.unary_union)]
-
-tileset_mask_landuse.to_file(paths['tileset_mask_landuse'], driver='GPKG')
-tileset_mask_dem.to_file(paths['tileset_mask_dem'], driver='GPKG')
+ExtractBylocation(paths['tileset_landuse'], paths['mask'], paths['tileset_mask_landuse'], method = 'intersects')
+ExtractBylocation(paths['tileset_dem'], paths['mask'], paths['tileset_mask_dem'], method = 'intersects')
 
 # copy raster tiles
 
@@ -58,10 +53,7 @@ vrt_landuse = subprocess.run(bash_landuse, shell=True, capture_output=True, text
 bash_dem = 'gdalbuildvrt "{}" "{}"*"{}"'.format(paths['dem_vrt'], paths['outputs_dir_dem_tiles'], params['dem_extension'])
 vrt_dem = subprocess.run(bash_dem, shell=True, capture_output=True, text=True)
 
-# Clip reference hydrologic network
+# extract hydro network from mask with contains
 
-hydro_network = gpd.read_file(paths['hydro_network'])
+ExtractBylocation(paths['hydro_network'], paths['mask'], paths['hydro_network_mask'], method = 'contains')
 
-hydro_network_mask = hydro_network.clip(mask = paths['mask'], keep_geom_type=True)
-
-hydro_network_mask.to_file(paths['hydro_network_mask'], driver="GPKG")

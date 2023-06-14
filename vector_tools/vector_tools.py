@@ -200,7 +200,6 @@ def ExtractBylocation(input_file, mask_file, output_file, method):
         for mask_feature in mask_layer:
             # print(polygon_feature)
             mask = shape(mask_feature['geometry'])
-            print(mask)
 
             # Get potential linestrings within the bounding box of the polygon
             potential_input = list(input_index.intersection(mask.bounds))
