@@ -221,7 +221,7 @@ def ExtractBylocation(input_file, mask_file, output_file, method):
         for feature in selected_features:
             output_layer.write(feature)
 
-def ExtractByBoundMask(input_file, mask_file, boxmask, output_file):
+def ExtractByBoundMask(input_file, mask_file, output_file):
     selected_features = []
 
     # # Create spatial index for input layer
