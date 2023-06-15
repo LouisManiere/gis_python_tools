@@ -18,6 +18,7 @@ import fiona.crs
 from shapely.geometry import shape
 from rtree import index
 from shapely.geometry import LineString, MultiLineString, mapping, Point
+from shapely.ops import unary_union
 import numpy as np
 
 def FeatureInPolygonWithDistance(linestring_path, polygon_path, output_path, distance_threshold):
@@ -220,4 +221,39 @@ def ExtractBylocation(input_file, mask_file, output_file, method):
         for feature in selected_features:
             output_layer.write(feature)
 
+def ExtractByBoundMask(input_file, mask_file, output_file):
+    selected_features = []
 
+    # # Create spatial index for input layer
+    # input_index = index.Index()
+    # with fiona.open(input_file, 'r') as input_layer:
+    #     for idx, input_feature in input_layer.items():
+    #         in_feat = shape(input_feature['geometry'])
+    #         input_index.insert(idx, in_feat.bounds)
+    
+    with fiona.open(mask_file, 'r') as mask_layer:
+        options = dict(
+                driver=input_layer.driver,
+                schema=input_layer.schema.copy(),
+                crs=input_layer.crs)
+        
+        polygons = [shape(feature["geometry"]) for feature in mask_layer]
+
+        # Merge the polygons into a single polygon
+        merged_polygon = unary_union(polygons)
+        # Calculate the bounding box of the merged polygon
+        bounds = merged_polygon.bounds
+
+        with fiona.open(input_file, 'r') as input_layer:
+            options = dict(
+                driver=input_layer.driver,
+                schema=input_layer.schema.copy(),
+                crs=input_layer.crs)
+            for feature in input_layer:
+                geom = shape(feature["geometry"])
+                if geom.intersects(bounds):
+                    selected_features.append(feature)
+        # Create a new GeoPackage file and write the selected features to it
+        with fiona.open(output_file, 'w', **options) as output_layer:
+            for feature in selected_features:
+                output_layer.write(feature) 

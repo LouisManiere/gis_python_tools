@@ -1,7 +1,7 @@
 import os
 from raster_tools.raster_tools import CreateTilesetFromRasters, ExtractRasterTilesFromTileset
 from vector_tools.CreateTilesetFromExtent import CreateTilesetFromExtent
-from vector_tools.vector_tools import ExtractBylocation
+from vector_tools.vector_tools import ExtractByBoundMask
 from config.config import paths_config, parameters_config
 import subprocess
 import geopandas as gpd
@@ -28,8 +28,8 @@ CreateTilesetFromRasters(
 
 # get intersection between mask and tileset
 
-ExtractBylocation(paths['tileset_landuse'], paths['mask'], paths['tileset_mask_landuse'], method = 'intersects')
-ExtractBylocation(paths['tileset_dem'], paths['mask'], paths['tileset_mask_dem'], method = 'intersects')
+ExtractByBoundMask(paths['tileset_landuse'], paths['mask'], paths['tileset_mask_landuse'])
+ExtractByBoundMask(paths['tileset_dem'], paths['mask'], paths['tileset_mask_dem'])
 
 # copy raster tiles
 
