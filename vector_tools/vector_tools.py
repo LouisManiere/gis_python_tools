@@ -15,7 +15,8 @@ DOCME
 
 import fiona
 import fiona.crs
-from shapely.geometry import shape, unary_union
+from shapely.geometry import shape
+from shapely.ops import unary_union
 from rtree import index
 from shapely.geometry import LineString, MultiLineString, mapping, Point
 import numpy as np
