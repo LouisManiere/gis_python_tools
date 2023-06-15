@@ -221,7 +221,7 @@ def ExtractBylocation(input_file, mask_file, output_file, method):
         for feature in selected_features:
             output_layer.write(feature)
 
-def ExtractByBoundMask(input_file, mask_file, output_file):
+def ExtractByBoundMask(input_file, mask_file, boxmask, output_file):
     selected_features = []
 
     # # Create spatial index for input layer
@@ -238,16 +238,21 @@ def ExtractByBoundMask(input_file, mask_file, output_file):
         # Merge the polygons into a single polygon
         merged_polygon = unary_union(polygons)
         # Calculate the bounding box of the merged polygon
-        bounds = merged_polygon.bounds
-        min_x, min_y, max_x, max_y = merged_polygon.bounds
-        width = max(max_x - min_x, max_y - min_y)  # Get the maximum width or height
-        center_x = (min_x + max_x) / 2
-        center_y = (min_y + max_y) / 2
-        new_min_x = center_x - width / 2
-        new_min_y = center_y - width / 2
-        new_max_x = center_x + width / 2
-        new_max_y = center_y + width / 2
-        bounds = box(new_min_x, new_min_y, new_max_x, new_max_y)
+        bounds = box(*merged_polygon.bounds)
+
+
+        output_schema = {
+                'geometry': 'Polygon',
+                'properties': {'ID': 'int'},
+            }
+        # Create a new GeoPackage file and write the selected features to it
+        with fiona.open(boxmask, 'w', driver ='GPKG',schema = output_schema, crs = mask_layer.crs) as bbox:
+            bbox.write(
+                {
+                    'geometry': mapping(bounds),
+                    'properties': {'ID': 1},
+                }
+            )
 
         with fiona.open(input_file, 'r') as input_layer:
             options = dict(
