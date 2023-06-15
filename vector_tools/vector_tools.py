@@ -240,20 +240,6 @@ def ExtractByBoundMask(input_file, mask_file, boxmask, output_file):
         # Calculate the bounding box of the merged polygon
         bounds = box(*merged_polygon.bounds)
 
-
-        output_schema = {
-                'geometry': 'Polygon',
-                'properties': {'ID': 'int'},
-            }
-        # Create a new GeoPackage file and write the selected features to it
-        with fiona.open(boxmask, 'w', driver ='GPKG',schema = output_schema, crs = mask_layer.crs) as bbox:
-            bbox.write(
-                {
-                    'geometry': mapping(bounds),
-                    'properties': {'ID': 1},
-                }
-            )
-
         with fiona.open(input_file, 'r') as input_layer:
             options = dict(
                 driver=input_layer.driver,
