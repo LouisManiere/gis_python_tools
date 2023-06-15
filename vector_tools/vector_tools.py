@@ -15,7 +15,7 @@ DOCME
 
 import fiona
 import fiona.crs
-from shapely.geometry import shape
+from shapely.geometry import shape, box
 from shapely.ops import unary_union
 from rtree import index
 from shapely.geometry import LineString, MultiLineString, mapping, Point
@@ -239,6 +239,15 @@ def ExtractByBoundMask(input_file, mask_file, output_file):
         merged_polygon = unary_union(polygons)
         # Calculate the bounding box of the merged polygon
         bounds = merged_polygon.bounds
+        min_x, min_y, max_x, max_y = merged_polygon.bounds
+        width = max(max_x - min_x, max_y - min_y)  # Get the maximum width or height
+        center_x = (min_x + max_x) / 2
+        center_y = (min_y + max_y) / 2
+        new_min_x = center_x - width / 2
+        new_min_y = center_y - width / 2
+        new_max_x = center_x + width / 2
+        new_max_y = center_y + width / 2
+        bounds = box(new_min_x, new_min_y, new_max_x, new_max_y)
 
         with fiona.open(input_file, 'r') as input_layer:
             options = dict(
