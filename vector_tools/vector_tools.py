@@ -232,10 +232,6 @@ def ExtractByBoundMask(input_file, mask_file, output_file):
     #         input_index.insert(idx, in_feat.bounds)
     
     with fiona.open(mask_file, 'r') as mask_layer:
-        options = dict(
-                driver=input_layer.driver,
-                schema=input_layer.schema.copy(),
-                crs=input_layer.crs)
         
         polygons = [shape(feature["geometry"]) for feature in mask_layer]
 
