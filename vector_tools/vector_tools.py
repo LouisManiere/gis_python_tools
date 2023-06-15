@@ -15,10 +15,9 @@ DOCME
 
 import fiona
 import fiona.crs
-from shapely.geometry import shape
+from shapely.geometry import shape, unary_union
 from rtree import index
 from shapely.geometry import LineString, MultiLineString, mapping, Point
-from shapely.ops import unary_union
 import numpy as np
 
 def FeatureInPolygonWithDistance(linestring_path, polygon_path, output_path, distance_threshold):
@@ -245,11 +244,11 @@ def ExtractByBoundMask(input_file, mask_file, output_file):
                 driver=input_layer.driver,
                 schema=input_layer.schema.copy(),
                 crs=input_layer.crs)
-            for feature in input_layer:
-                geom = shape(feature["geometry"])
+            for feat in input_layer:
+                geom = shape(feat["geometry"])
                 if geom.intersects(bounds):
-                    selected_features.append(feature)
+                    selected_features.append(feat)
         # Create a new GeoPackage file and write the selected features to it
         with fiona.open(output_file, 'w', **options) as output_layer:
-            for feature in selected_features:
-                output_layer.write(feature) 
+            for select in selected_features:
+                output_layer.write(select) 
