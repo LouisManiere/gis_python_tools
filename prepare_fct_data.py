@@ -26,8 +26,8 @@ CreateTilesetFromRasters(
 
 # get intersection between mask and tileset
 
-ExtractByBoundMask(paths['tileset_landuse'], paths['mask'], paths['tileset_mask_landuse'])
-ExtractByBoundMask(paths['tileset_dem'], paths['mask'], paths['tileset_mask_dem'])
+ExtractBylocation(paths['tileset_landuse'], paths['mask'], paths['tileset_mask_landuse'], method = 'intersects')
+ExtractBylocation(paths['tileset_dem'], paths['mask'], paths['tileset_mask_dem'], method = 'intersects')
 
 # copy raster tiles
 
