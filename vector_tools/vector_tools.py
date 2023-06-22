@@ -253,3 +253,84 @@ def ExtractByBoundMask(input_file, mask_file, output_file):
         with fiona.open(output_file, 'w', **options) as output_layer:
             for select in selected_features:
                 output_layer.write(select) 
+
+# work from python-fct not finish (for memory)
+def JoinNetworkAttributes(params, tileset = 'default'):
+
+    sources_confluences = params.sources_confluences.filename(tileset=None)
+    network_identified_strahler = params.network_identified_strahler.filename(tileset=tileset)
+    rhts = params.rhts.filename(tileset=tileset)
+
+    strahler_field_name = 'strahler'
+    distance_threshold = 50
+
+    # get the fields in the schema from sources_confluences not existing in network_identified_strahler 
+    with fiona.open(sources_confluences, 'r') as source:
+        with fiona.open(network_identified_strahler, 'r') as network:
+            schema_source_prop = source.schema['properties']
+            schema_network_prop = network.schema['properties']
+            new_schema_network = network.schema.copy()
+            for key, value in schema_source_prop.items():
+                if key not in schema_network_prop:
+                    new_schema_network['properties'][key] = value
+
+    # get sources_confluences with strahler == 1
+    with fiona.open(sources_confluences, 'r') as source:
+        strahler1 = [feature for feature in source if feature['properties'][strahler_field_name] == 1]
+
+
+    # Create an R-tree index
+    strahler1_index = index.Index()
+    # populate index
+    for i, point in enumerate(strahler1):
+        geom = shape(point['geometry'])
+        strahler1_index.insert(i, geom.bounds)
+
+
+    with fiona.open(network_identified_strahler, 'r') as network:
+        
+        options = dict(
+            schema = new_schema_network,
+            driver = network.driver,
+            crs = network.crs
+        )
+        with fiona.open(rhts, 'w', **options) as output:
+        
+            for line in network:
+                # initialisation to get nearest_point
+                nearest_point = None
+                nearest_distance = float('inf')
+                line_properties = line['properties']
+                # get lione with strahler == 1
+                if line['properties'][strahler_field_name] == 1:
+                    geometry = shape(line['geometry'])
+                    # get line first point coordinates
+                    first_point = Point(geometry.coords[0])
+                    # create buffer around first point
+                    point_buffer = first_point.buffer(distance_threshold)
+                    # get all the point from source that intersect with buffer with index
+                    potential_matches = [idx for idx in strahler1_index.intersection(point_buffer.bounds)] # store idx of the index
+                    
+                    if potential_matches:
+                        # seach with index in potential_matches
+                        for idx in potential_matches:
+                            source_potential_geom = shape(strahler1[idx]['geometry'])
+                            # iterate through potential_matches strahler1, calculate distance and get the shortest by updating nearest_distance if the current strahler1 is closer
+                            if first_point.distance(source_potential_geom) < nearest_distance:
+                                nearest_point = strahler1[idx]
+                                nearest_distance = first_point.distance(source_potential_geom)
+                        nearest_point_properties = nearest_point['properties']
+
+                        # get the fields in the properties from sources_confluences not existing in network_identified_strahler 
+                        output_properties = line_properties
+                        for key, value in nearest_point_properties.items():
+                            print(key)
+                            if key not in line_properties:
+                                output_properties[key] = value
+                        print(output_properties)
+                        rhts_feature = {
+                                        'type': 'Feature',
+                                        'properties': output_properties,
+                                        'geometry': line['geometry'],
+                                    }
+                        output.write(rhts_feature)
