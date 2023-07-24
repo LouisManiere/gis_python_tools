@@ -1,3 +1,5 @@
+# script to extract the line network in the BD TOPO surface hydrographique
+
 from vector_tools.vector_tools import FeatureInPolygonWithDistance
 from config.config import paths_config, parameters_config
 
