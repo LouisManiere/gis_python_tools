@@ -59,7 +59,9 @@ def FeatureInPolygonWithDistance(linestring_path, polygon_path, output_path, dis
                 # print(linestring_feature)
                 linestring = shape(linestring_feature['geometry'])
 
+                # check intersect condition
                 if linestring.intersects(polygon):
+                    # clip to get only geom in polygon and remove small lines
                     clipped_linestring = linestring.intersection(polygon)
                     linestring_length = clipped_linestring.length
                     if linestring_length > distance_threshold:
